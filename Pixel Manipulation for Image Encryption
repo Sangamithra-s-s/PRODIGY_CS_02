@@ -1,0 +1,85 @@
+HTML:
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Image Encryption Tool</title>
+</head>
+<body>
+	<input type="file" id="imageInput" accept="image/*">
+	<button onclick="encryptImage()">Encrypt Image</button>
+	<button onclick="decryptImage()">Decrypt Image</button>
+	<br>
+	<img id="imageOutput" src="" width="300">
+
+	<script src="imageEncryption.js"></script>
+</body>
+</html>
+JS:
+function encryptImage() {
+    const input = document.getElementById("imageInput");
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            for (let y = 0; y < img.height; y++) {
+                for (let x = 0; x < img.width; x++) {
+                    const data = ctx.getImageData(x, y, 1, 1).data;
+                    const red = data[0];
+                    const green = data[1];
+                    const blue = data[2];
+
+                    // Swap red and blue color channels
+                    data[0] = blue;
+                    data[2] = red;
+
+                    ctx.putImageData(ctx.createImageData(data), x, y);
+                }
+            }
+
+            const output = document.getElementById("imageOutput");
+            output.src = canvas.toDataURL();
+        };
+
+        img.src = event.target.result;
+    };
+
+    reader.readAsDataURL(file);
+}
+
+function decryptImage() {
+    const output = document.getElementById("imageOutput");
+    const img = new Image();
+
+    img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        for (let y = 0; y < img.height; y++) {
+            for (let x = 0; x < img.width; x++) {
+                const data = ctx.getImageData(x, y, 1, 1).data;
+                const red = data[0];
+                const green = data[1];
+                const blue = data[2];
+
+                // Swap red and blue color channels back to original
+                data[0] = blue;
+                data[2] = red;
+
+                ctx.putImageData(ctx.createImageData(data), x, y);
+            }
+        }
+
+        output.src = canvas.toDataURL();
+    };
+
+    output.src = output.src.replace("image/jpeg", "image/png");
+}
